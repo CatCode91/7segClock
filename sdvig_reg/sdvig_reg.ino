@@ -31,17 +31,14 @@ const byte digits[10] = {
     B11110110 
 };
 
-const byte Mdigits[10] = {
-    B11101110, 
-    B10000010, 
-    B11011100, 
-    B11010110,
-    B10110010, 
-    B01110110, 
-    B01111110, 
-    B11000010, 
-    B11111110, 
-    B11110110 
+byte customChar[7]= {
+  B01110,
+  B01010,
+  B00010,
+  B00100,
+  B01000,
+  B01110,
+  B00000,
 };
 
 void fill7seg( byte d ){
@@ -55,11 +52,11 @@ void fill7seg( byte d ){
     digitalWrite(Sst_pin, LOW);
 }
 
-void fillMatrix( byte d ){
-    for(char i=0; i<8; i++)
+void fillMatrix( ){
+    for(char i=0; i<7; i++)
     {
         digitalWrite(Msh_pin, LOW);
-        digitalWrite(Mdata_pin, Mdigits[d] & (1<<i));
+        digitalWrite(Mdata_pin, customChar[i] & (1<<i));
         digitalWrite(Msh_pin, HIGH);
     }
     
@@ -67,7 +64,8 @@ void fillMatrix( byte d ){
     digitalWrite(Mst_pin, LOW);
 }
 
-void DS3231_display(){
+void DS3231_display()
+{
   second = (second >> 4) * 10 + (second & 0x0F);
   minute = (minute >> 4) * 10 + (minute & 0x0F);
   hour   = (hour >> 4)   * 10 + (hour & 0x0F);
@@ -85,17 +83,12 @@ void DS3231_display(){
   fill7seg(m_1);
   delay(3);
   digitalWrite(Sseg_pins[1], LOW);
-
+  
   digitalWrite(Sseg_pins[2], HIGH);
   fill7seg(h_2);
   delay(3);
-  digitalWrite(Sseg_pins[2], LOW);
-
-  digitalWrite(matrix_pins[4], HIGH);
-  delay(3);
-  digitalWrite(matrix_pins[4], LOW); 
+  digitalWrite(Sseg_pins[2], LOW); 
 }
-
 
 
 void setup() 
