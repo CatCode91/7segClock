@@ -1,7 +1,7 @@
 #include <Wire.h>
 
 const byte Sseg_pins[3] = {8,9,10}; 
-const byte matrix_pins[5] = {11,14,15,16,17}; 
+const byte Matrix_pins[5] = {11,14,15,16,17}; 
 
 const byte Sdata_pin = 3;
 const byte Ssh_pin = 4;
@@ -31,14 +31,11 @@ const byte digits[10] = {
     B11110110 
 };
 
-byte customChar[7]= {
-  B01110,
-  B01010,
-  B00010,
-  B00100,
-  B01000,
-  B01110,
-  B00000,
+byte Mdigits[4]= {
+  B01111000, 
+  B01110100,
+  B01101101,
+  B00001100,
 };
 
 void fill7seg( byte d ){
@@ -48,23 +45,61 @@ void fill7seg( byte d ){
         digitalWrite(Sdata_pin, digits[d] & (1<<i));
         digitalWrite(Ssh_pin, HIGH);
     }
-    digitalWrite(Sst_pin, HIGH); 
+    digitalWrite(Sst_pin, HIGH);
+ 
     digitalWrite(Sst_pin, LOW);
 }
 
-void fillMatrix( ){
-    for(char i=0; i<7; i++)
+void fillMatrix(byte d)
+{
+   for(char i=1; i<8; i++)
     {
         digitalWrite(Msh_pin, LOW);
-        digitalWrite(Mdata_pin, customChar[i] & (1<<i));
+        digitalWrite(Mdata_pin, Mdigits[d] & (1<<i));
         digitalWrite(Msh_pin, HIGH);
     }
-    
     digitalWrite(Mst_pin, HIGH); 
-    digitalWrite(Mst_pin, LOW);
+    digitalWrite(Mst_pin, LOW); 
+}
+  
+void Display7seg(int m1,int m2,int h2)
+{
+  int temp;
+
+  for(char i=0; i<3; i++)
+    { switch(i)
+    {
+    case 0:
+      temp = m2;
+      break;
+      case 1:
+      temp = m1;
+      break;
+     case 2:
+      temp = h2;
+      break;
+    }
+       digitalWrite(Sseg_pins[i], HIGH);
+       fill7seg(temp);
+       delay(3);
+       digitalWrite(Sseg_pins[i], LOW);
+    }
 }
 
-void DS3231_display()
+void DisplayMatrix(int h1)
+{
+  for(char i=0; i<4; i++)
+    { 
+       digitalWrite(Matrix_pins[i], HIGH);
+       fillMatrix(i);
+       delay(3);
+       digitalWrite(Matrix_pins[i], LOW);
+    }
+}
+
+
+
+void Display()
 {
   second = (second >> 4) * 10 + (second & 0x0F);
   minute = (minute >> 4) * 10 + (minute & 0x0F);
@@ -75,21 +110,21 @@ void DS3231_display()
   int h_1 = hour/10;
   int h_2 = hour%10;
 
-  digitalWrite(Sseg_pins[0], HIGH);
-  fill7seg(m_2);
-  delay(3);
-  digitalWrite(Sseg_pins[0], LOW);
-  digitalWrite(Sseg_pins[1], HIGH);
-  fill7seg(m_1);
-  delay(3);
-  digitalWrite(Sseg_pins[1], LOW);
-  
-  digitalWrite(Sseg_pins[2], HIGH);
-  fill7seg(h_2);
-  delay(3);
-  digitalWrite(Sseg_pins[2], LOW); 
+  Display7seg(m_1,m_2,h_2);
+
+  DisplayMatrix(h_1);
 }
 
+
+void FillingM()
+{
+  for(char i=0; i<5; i++)
+    {
+       digitalWrite(Matrix_pins[i], HIGH);
+       fillMatrix(i);
+       digitalWrite(Matrix_pins[i], LOW); 
+    }
+}
 
 void setup() 
 {
@@ -100,9 +135,9 @@ void setup()
         pinMode(Sseg_pins[i], OUTPUT);
     }
 
-    for(int i=0; i<7; i++)
+    for(int i=0; i<5; i++)
     {
-        pinMode(matrix_pins[i], OUTPUT);
+        pinMode(Matrix_pins[i], OUTPUT);
     }
     
     pinMode(Sdata_pin, OUTPUT);
@@ -124,7 +159,5 @@ void loop()
     second = Wire.read();                         // Read seconds from register 0
     minute = Wire.read();                         // Read minuts from register 1
     hour   = Wire.read();                         // Read hour from register 2
-    DS3231_display();
+    Display();
 }
-
-
