@@ -1,2 +1,3 @@
 #Игнорируемые файлы
-*.workplace
+*.workspace
+*.pdsbak
