@@ -1,4 +1,16 @@
 #include <Wire.h>
+#include <OneWire.h>
+#include <DallasTemperature.h>
+
+// Data wire is plugged into pin 2 on the Arduino
+#define ONE_WIRE_BUS 7
+ 
+// Setup a oneWire instance to communicate with any OneWire devices 
+// (not just Maxim/Dallas temperature ICs)
+OneWire oneWire(ONE_WIRE_BUS);
+ 
+// Pass our oneWire reference to Dallas Temperature.
+DallasTemperature sensors(&oneWire);
 
 int counter = 7;
 
@@ -61,16 +73,21 @@ byte Matrix_t[3]= {
 };
 
 
-void ShowTemperature(int t1,int t2)
+void ShowTemperature()
 {
-  int temp;
+  float t = sensors.getTempCByIndex(0);
+      
+  float t_1 = t/10;
+  //float t_2 = t%10;
+  
+  float temp;
   for(char i=0; i<3; i++){ 
       switch(i){
         case 0:
-        temp = t2;
+        temp = 0;
         break;
         case 1:
-        temp = t1;
+        temp = t_1;
         break;
         case 2:
         temp = 11;
@@ -212,11 +229,13 @@ void setup()
     
     pinMode(Mdata_pin, OUTPUT);
     pinMode(Msh_pin, OUTPUT);
-    pinMode(Mst_pin, OUTPUT);   
+    pinMode(Mst_pin, OUTPUT);  
+    
+    sensors.begin();            // начинаем работу с датчиком
 }
 
 void loop()
-{
+{   
     Wire.beginTransmission(0x68);                 // Start I2C protocol with DS3231 address
     Wire.write(0);                                // Send register address
     Wire.endTransmission(false);                  // I2C restart
@@ -224,10 +243,12 @@ void loop()
     second = Wire.read();                         // Read seconds from register 0
     minute = Wire.read();                         // Read minuts from register 1
     hour   = Wire.read();    
+
     // Read hour from register 2
     if(counter > 10)
     {
-      ShowTemperature(2,0);
+      sensors.requestTemperatures();    
+      ShowTemperature();
     }
     else
     {
